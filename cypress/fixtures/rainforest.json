@@ -1,0 +1,12 @@
+
+{
+  
+     "chromeWebSecurity": false,
+     "ignore_uncaught": true,
+     "env": {
+         "environment": "rainforest",
+         "baseUrl": "https://www.sappucedemo.com/",
+         "userName" : "stooandard_user",
+         "passwordpassword" : "secooret_sauce"
+   }
+   }
