@@ -1,0 +1,39 @@
+name: Cypress Smoke test
+on: workflow_dispatch
+jobs:
+  cypress-run:
+    runs-on: ubuntu-latest
+    environment: TEST
+    env:
+      baseUrl: ${{ secrets.BASE_URL }}
+      userName: ${{ secrets.USER_NAME }}
+      password: ${{ secrets.PASSWORD }}
+    steps:
+      - name: Checkout master
+        uses: actions/checkout@v2
+      - name: Install Nodjs
+        uses: actions/setup-node@v2
+        with:
+          node-version: 12
+      - name: Install Dependencies
+        run : |
+            npm i
+            npm run cypress:run
+            
+      - name: Slack notification with cypress-slack-reporter
+        if: always()
+        env: 
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+        run: |
+          npx cypress-slack-reporter
+            
+      - name: Trigger Cypress Smoke Test
+        if: success()
+        uses: peter-evans/repository-dispatch@v2
+        with:
+          token: ${{ secrets.GAT_ACT_TAC }}
+          repository: ${{ github.repository }}
+          event-type: trigger-cypress-run
+          client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}"}'
+
+     
