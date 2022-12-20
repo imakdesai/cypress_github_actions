@@ -1,5 +1,6 @@
 name: cypress run after deployment
 on: 
+  workflow_dispatch:
   repository_dispatch:
     types: [trigger-cypress-run]
 jobs:
