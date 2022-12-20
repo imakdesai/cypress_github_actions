@@ -1,0 +1,67 @@
+name: cypress run after deployment
+on: 
+  repository_dispatch:
+    types: [trigger-cypress-run]
+jobs:
+  cypress-run:
+    runs-on: ubuntu-latest
+    environment: TEST
+    env:
+      baseUrl: ${{ secrets.BASE_URL }}
+      userName: ${{ secrets.USER_NAME }}
+      password: ${{ secrets.PASSWORD }}
+    steps:
+      - name: Checkout master
+        uses: actions/checkout@v2
+      - name: Install Nodjs
+        uses: actions/setup-node@v2
+        with:
+          node-version: 12
+      - name: Install Dependencies
+        run : |
+            npm i
+            npm run cypress:run
+      - name: Deploy report page
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+            github_token: ${{ secrets.GITHUB_TOKEN }}
+            publish_dir: ./public
+            user_name: 'github-actions[bot]'
+            user_email: 'github-actions[bot]@users.noreply.github.com'
+
+     
+      - name: Merge mochawesome report
+        if: always()
+        run: |
+          source .circleci/common.sh
+          cd appfiles/test/cypress
+          node_modules/.bin/mochawesome-merge --reportDir /tmp/artifacts/junit/cypress/*.json > /tmp/artifacts/junit/cypress/output.json
+          node_modules/.bin/marge /tmp/artifacts/junit/cypress/output.json --reportDir /tmp/artifacts/junit/cypress
+    
+      - name: Move screenshots        
+        if: failure()
+        run: |
+          cd appfiles/test/cypress         
+          cp -a snapshots/actual/. /tmp/artifacts/junit/cypress/assets
+
+      - uses: actions/upload-artifact@v2
+        if: always()
+        with:
+          name: Mochawesome report
+          path: '/tmp/artifacts/junit/cypress'
+          if-no-files-found: ignore
+
+      - uses: actions/upload-artifact@v2
+        if: always()
+        with:
+          name: html report
+          path: 'appfiles/test/cypress/build/reports/report.html'
+          if-no-files-found: ignore
+
+      - uses: actions/upload-artifact@v2
+        if: always()
+        with:
+          name: Screenshots
+          path: 'appfiles/test/cypress/snapshots/actual/**'
+          if-no-files-found: ignore
+
