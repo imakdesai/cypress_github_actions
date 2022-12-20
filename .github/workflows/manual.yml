@@ -34,8 +34,7 @@ jobs:
       - name: Merge mochawesome report
         if: always()
         run: |
-          source .circleci/common.sh
-          cd appfiles/test/cypress
+          cd cypress
           node_modules/.bin/mochawesome-merge --reportDir /tmp/artifacts/junit/cypress/*.json > /tmp/artifacts/junit/cypress/output.json
           node_modules/.bin/marge /tmp/artifacts/junit/cypress/output.json --reportDir /tmp/artifacts/junit/cypress
     
